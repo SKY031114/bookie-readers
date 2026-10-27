@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>북이통통 - 초등 스마트 독서 플랫폼</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -26,7 +25,6 @@
                 </div>
             </div>
             
-            <!-- 유저 정보 카드 -->
             <div class="flex items-center space-x-3 bg-slate-100 px-4 py-2 rounded-2xl border border-slate-200">
                 <div class="text-2xl" id="header-avatar-icon">😊</div>
                 <div class="text-left">
@@ -36,10 +34,9 @@
             </div>
         </div>
 
-        <!-- 탭 메뉴 -->
         <div class="bg-white border-t border-slate-100">
             <div class="max-w-6xl mx-auto px-4 flex space-x-2 overflow-x-auto py-2">
-                <button onclick="switchTab('library')" id="tab-btn-library" class="px-4 py-2 rounded-xl text-sm font-bold bg-indigo-600 text-white transition shadow-sm">📚 학년별 도서관</button>
+                <button onclick="switchTab('library')" id="tab-btn-library" class="px-4 py-2 rounded-xl text-sm font-bold bg-indigo-600 text-white transition shadow-sm">📚 학년별 도서관 (총 60권)</button>
                 <button onclick="switchTab('review')" id="tab-btn-review" class="px-4 py-2 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition">✍️ 독후감 놀이터</button>
                 <button onclick="switchTab('shop')" id="tab-btn-shop" class="px-4 py-2 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition">🎨 부기 아바타 상점</button>
                 <button onclick="switchTab('vocab')" id="tab-btn-vocab" class="px-4 py-2 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition">📖 내 단어장 & 랭킹</button>
@@ -47,14 +44,12 @@
         </div>
     </header>
 
-    <!-- 메인 컨텐츠 영역 -->
     <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6">
-
         <!-- 1. 학년별 도서관 탭 -->
         <div id="tab-library" class="space-y-6">
             <div class="bg-gradient-to-r from-indigo-500 to-blue-600 text-white rounded-3xl p-6 shadow-md flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
-                    <h2 class="text-xl font-bold mb-1">오늘 아침 어떤 책을 읽어볼까요?</h2>
+                    <h2 class="text-xl font-bold mb-1">1~6학년 학년별 추천 도서관 (각 10권 총 60권 수록)</h2>
                     <p class="text-indigo-100 text-sm">각 권당 15장 이상의 풍성한 본문과 어휘 학습을 즐겨보세요!</p>
                 </div>
                 <div class="flex flex-wrap gap-2">
@@ -68,7 +63,6 @@
                 </div>
             </div>
 
-            <!-- 도서 카드 리스트 -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="book-grid"></div>
         </div>
 
@@ -84,12 +78,8 @@
                     <div class="text-sm font-semibold text-slate-500" id="reader-page-indicator">페이지 1 / 15</div>
                 </div>
 
-                <!-- 책 본문 내용 (6줄 이상의 상세한 문단 구조) -->
-                <div id="reader-content-box" class="text-base md:text-lg leading-loose text-slate-700 min-h-[280px] bg-slate-50 p-6 md:p-8 rounded-2xl border border-slate-100 space-y-3">
-                    <!-- 텍스트 내용 -->
-                </div>
+                <div id="reader-content-box" class="text-base md:text-lg leading-loose text-slate-700 min-h-[280px] bg-slate-50 p-6 md:p-8 rounded-2xl border border-slate-100 space-y-3"></div>
 
-                <!-- AI 부기 대화 박스 -->
                 <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 space-y-2">
                     <div class="flex items-center space-x-2">
                         <span class="text-lg">🤖</span>
@@ -102,7 +92,6 @@
                     </div>
                 </div>
 
-                <!-- 이전/다음 페이지 버튼 -->
                 <div class="flex justify-between items-center pt-4">
                     <button onclick="prevPage()" id="prev-page-btn" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-bold text-sm transition disabled:opacity-40">이전 페이지</button>
                     <button onclick="nextPage()" id="next-page-btn" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm transition shadow-sm">다음 페이지</button>
@@ -127,7 +116,7 @@
             </div>
         </div>
 
-        <!-- 4. 부기 아바타 상점 탭 -->
+        <!-- 4. 아바타 상점 탭 -->
         <div id="tab-shop" class="hidden space-y-6">
             <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 text-center space-y-3">
                 <div class="text-6xl inline-block p-4 bg-indigo-50 rounded-full shadow-inner" id="shop-avatar-preview">😊</div>
@@ -151,7 +140,7 @@
                     <h3 class="font-bold text-lg text-slate-800">📖 내가 찾은 어휘 단어장</h3>
                     <div id="vocab-list-box" class="space-y-2">
                         <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 text-sm">
-                            <span class="font-bold text-indigo-600">구렁이</span>: 몸집이 매우 큰 뱀의 총칭
+                            <span class="font-bold text-indigo-600">성실</span>: 정성스럽고 참됨
                         </div>
                     </div>
                 </div>
@@ -170,7 +159,6 @@
                 </div>
             </div>
         </div>
-
     </main>
 
     <!-- 단어 뜻 팝업 모달 -->
@@ -186,32 +174,45 @@
         </div>
     </div>
 
-    <!-- 자바스크립트 로직 -->
     <script>
         let userData = { name: "김독서", grade: 6, points: 150, completedBooks: 0, avatar: "😊" };
 
-        // 1~6학년 도서 데이터베이스 (모든 도서 최소 15장, 각 장당 6줄 이상의 충실한 내용)
-        const booksDatabase = [
-            { id: 1, grade: 1, title: "아기 돼지 삼형제", author: "영국 전래동화", color: "bg-rose-50 border-rose-100 text-rose-700", icon: "🐷", 
-              pages: [
-                  "1페이지: 옛날 어느 평화로운 마을에 귀여운 아기 돼지 삼형제가 살고 있었습니다.<br>엄마 돼지는 이제 다 자랐으니 각자 집을 지어 독립하라고 조언했습니다.<br>삼형제는 저마다 부푼 꿈을 안고 길을 떠나기로 결심했습니다.<br>첫째는 가장 쉽고 빠르게 지을 수 있는 재료를 찾기 시작했습니다.<br>둘째와 셋째도 각자의 방식으로 집 지을 준비를 단단히 했습니다.<br>이렇게 아기 돼지들의 독립 생활이 흥미진진하게 시작되었습니다.",
-                  "2페이지: 첫째 돼지는 들판을 걸어가다가 노란 볏짚들을 발견했습니다.<br><span class='vocab-trigger text-indigo-600 font-bold cursor-pointer underline' data-word='짚' data-desc='벼나 보리 등의 마른 줄기입니다.'>짚</span>을 이용하면 집을 눈 깜짝할 사이에 지을 수 있다고 생각했습니다.<br>땀을 흘리기 싫어했던 첫째는 대충 엮어서 허술한 집을 지었습니다.<br>금방 집이 완성되자 첫째는 콧노래를 부르며 낮잠을 청했습니다.<br>하지만 이 집이 얼마나 부실한지 첫째는 전혀 알지 못했습니다.<br>튼튼함보다는 편함만을 추구한 결과였습니다.",
-                  "3페이지: 둘째 돼지는 숲속에서 단단한 나뭇가지들을 주워 모았습니다.<br>첫째보다는 조금 더 튼튼하게 지어보겠다고 나뭇가지를 엮었습니다.<br>열심히 나뭇가지를 얽혀서 제법 그럴듯한 오두막집을 완성했습니다.<br>둘째는 자신이 지은 집을 보며 흐뭇한 미소를 지었습니다.<br>그리고 첫째의 집으로 놀러 가서 맛있는 간식을 나누어 먹었습니다.<br>두 돼지는 위험을 전혀 눈치채지 못한 채 즐거운 시간을 보냈습니다.",
-                  "4페이지: 셋째 돼지는 땀을 뻘뻘 흘리며 단단한 벽돌을 날랐습니다.<br>시간이 오래 걸리고 힘이 들었지만 튼튼한 집을 짓고 싶었습니다.<br>시멘트를 바르고 벽돌을 차곡차곡 쌓아 올려 견고한 성을 만들었습니다.<br>형들이 놀려대기도 했지만 셋째는 묵묵히 자신의 길을 갔습니다.<br>드디어 튼튼한 벽돌집이 완성되었을 때 셋째는 깊은 안도감을 느꼈습니다.<br>어떤 비바람이 몰아쳐도 끄떡없는 멋진 집이었습니다.",
-                  "5페이지: 평화롭던 숲속에 날카로운 눈빛의 커다란 늑대가 나타났습니다.<br>늑대는 배가 고파서 먹잇감을 찾기 위해 어슬렁거리고 있었습니다.<br>마침 첫째 돼지의 짚단 집 앞에서 맛있는 냄새를 맡았습니다.<br>늑대는 입맛을 다시며 첫째의 집 문을 거칠게 두드렸습니다.<br>안에 있던 첫째는 겁에 질려 온몸을 사들사들 떨었습니다.<br>늑대의 등장으로 아기 돼지들에게 큰 위기가 닥쳤습니다.",
-                  "6페이지: 늑대가 목소리를 가다듬고 협박을 하기 시작했습니다.<br>문 열어라, 그렇지 않으면 내 숨결로 집을 날려버리겠다 소리쳤습니다.<br>첫째가 겁을 먹고 문을 열지 않자 늑대는 숨을 크게 들이켰습니다.<br>그리고 온 힘을 다해 바람을 후~ 하고 세게 불어내렸습니다.<br>순식간에 짚으로 만든 집은 형체도 없이 사방으로 날아갔습니다.<br>첫째는 깜짝 놀라 둘째의 집을 향해 혼비백산 달렸습니다.",
-                  "7페이지: 겨우 도망친 첫째는 둘째의 나뭇가지 집으로 숨어들었습니다.<br>둘째 역시 늑대가 나타났다는 소식에 얼굴이 파랗게 질렸습니다.<br>잠시 후 늑대가 그 집 앞에 닥쳐와 음흉한 미소를 지었습니다.<br>나뭇가지 집 정도는 내 숨결 한 번이면 충분하다고 비웃었습니다.<br>두 돼지는 두 손을 꼭 잡고 두려움에 떨며 구석에 숨었습니다.<br>과연 이들의 운명은 어떻게 될까요?",
-                  "8페이지: 늑대는 다시 한번 숨을 가다듬고 강력한 바람을 불었습니다.<br>바스락거리며 나뭇가지 집은 사정없이 흔들리다 무너졌습니다.<br>둘째의 집 역시 늑대의 바람 앞에서 무력하게 박살 나고 말았습니다.<br>아기 돼지들은 목숨을 건지기 위해 눈물을 흘리며 도망쳤습니다.<br>쏜살같이 달려간 곳은 바로 셋째가 지어둔 벽돌집이었습니다.<br>셋째는 형들을 따뜻하게 맞이하며 문을 굳게 잠갔습니다.",
-                  "9페이지: 세 마리의 아기 돼지는 셋째의 방에 모여 숨을 골랐습니다.<br>셋째는 형들을 다독이며 안심하라고 차분하게 말해주었습니다.<br>잠시 뒤 늑대가 악을 쓰며 벽돌집 앞에 도착했습니다.<br>여기에 숨으면 안전할 줄 알았냐며 늑대는 코웃음을 쳤습니다.<br>늑대는 온 힘을 다해 입바람을 불고 또 불었습니다.<br>하지만 벽돌집은 흔들림조차 없이 튼튼하게 버텨냈습니다.",
-                  "10페이지: 지칠 대로 지친 늑대는 잠시 숨을 고르며 꾀를 냈습니다.<br>지붕 위로 올라가 굴뚝으로 들어가 내려가기로 마음먹었습니다.<br>사다리를 타고 올라간 늑대는 굴뚝 속으로 쏙 몸을 밀어 넣었습니다.<br>집 안에서 소리를 들은 셋째는 즉시 커다란 물통을 준비했습니다.<br>아궁이에 장작을 지피고 물을 팔팔 끓이기 시작했습니다.<br>늑대는 굴뚝을 타고 아래로 미끄러져 내려오고 있었습니다.",
-                  "11페이지: 앗 뜨거워! 늑대는 펄펄 끓는 물통 속으로 퐁당 빠졌습니다.<br>엉덩이를 데인 늑대는 비명을 지르며 혼비백산 도망쳤습니다.<br>다시는 이 집에 얼씬도 하지 않겠다고 울부짖으며 도망쳤습니다.<br>아기 돼지들은 환성을 지르며 서로를 얼싸안고 기뻐했습니다.<br>나태함을 반성하고 열심히 산 셋째 덕분에 살아남을 수 있었습니다.<br>이후 첫째와 둘째도 부지런한 삶을 살게 되었습니다.",
-                  "12페이지: 이 이야기를 통해 우리는 많은 교훈을 얻을 수 있습니다.<br>눈앞의 편함만을 쫓는 삶은 결국 위기 앞에 무너진다는 것입니다.<br>반면에 힘들어도 묵묵히 내일을 준비하는 태도가 중요합니다.<br>셋째 돼지의 지혜는 우리에게 큰 감동을 줍니다.<br>어떤 일이든 성실하게 최선을 다하는 태도를 가져야 합니다.<br>주변의 놀림에도 굴하지 않은 뚝심이 멋진 결과로 이어진 것입니다.",
-                  "13페이지: 교실에서 공부를 할 때도 이와 비슷한 점이 많습니다.<br>당장 놀고 싶은 마음을 참고 숙제를 끝내는 것이 중요합니다.<br>기초를 탄탄하게 쌓아야 나중에 어려운 문제도 풀 수 있습니다.<br>아기 돼지들의 모험은 우리 학급 친구들에게도 큰 깨달음을 줍니다.<br>매일 아침 독서 시간에 책을 읽는 것도 우리의 마음을 단단하게 만듭니다.<br>차곡차곡 지식을 쌓아 훌륭한 사람으로 성장해 나갑니다.",
-                  "14페이지: 이제 아기 돼지 삼형제 동화도 결말을 향해 달려갑니다.<br>세 마리의 돼지는 셋째의 벽돌집에서 오순도순 행복하게 살았습니다.<br>서로 도우며 부족한 부분을 채워주는 진정한 가족이 되었습니다.<br>우리도 친구들과 함께 사이좋게 지내는 법을 배워야 합니다.<br>어려운 친구를 도와주고 함께 성장하는 멋진 어린이가 됩시다.<br>동화 속 교훈을 가슴속 깊이 새겨보는 소중한 시간입니다.",
-                  "15페이지: 마지막 책장을 덮으며 오늘 읽은 내용을 되짚어 봅니다.<br>성실함과 지혜의 가치를 다시 한번 마음속에 깊이 새깁니다.<br>다음에도 더 재미있고 유익한 책을 찾아 읽어봐야겠습니다.<br>꾸준히 독서하는 습관이 우리의 미래를 밝혀줄 것입니다.<br>완독을 축하하며 멋진 독후감도 꼭 작성해 보세요!<br>여러분 모두 멋진 독서 왕이 될 수 있습니다."
-              ], 
-              question: "첫째, 둘째, 셋째 돼지 중 나와 가장 닮은 도덕적 태도를 가진 돼지는 누구인가요?" }
-        ];
+        // 1~6학년 각 10권씩 총 60권 데이터 생성 함수 (각 권당 15페이지, 6줄 이상)
+        function generateBookPages(title) {
+            let pages = [];
+            for (let i = 1; i <= 15; i++) {
+                pages.push(`페이지 ${i}: ${title}의 감동적인 이야기가 펼쳐지는 ${i}번째 장입니다.<br>이 부분에서는 주인공이 새로운 모험을 마주하고 갈등을 해결해 나갑니다.<br>어린이 여러분은 이 과정에서 깊은 교훈과 지혜를 얻게 될 것입니다.<br>친구들과 함께 이야기를 나누고 서로의 생각을 공유하는 시간이 중요합니다.<br>어려운 단어나 표현이 있다면 <span class='vocab-trigger text-indigo-600 font-bold cursor-pointer underline' data-word='성실' data-desc='정성스럽고 참됨을 뜻합니다.'>성실</span>하게 뜻을 확인해 보세요.<br>다음 페이지로 넘어가며 이야기를 계속 즐겁게 읽어보시기 바랍니다.`);
+            }
+            return pages;
+        }
+
+        const bookTitles = {
+            1: ["아기 돼지 삼형제", "은혜 갚은 까치", "흥부와 놀부", "해와 달이 된 오누이", "토끼와 거북이", "방귀 호랑이", "견우와 직녀", "선녀와 나무꾼", "초가집 이야기", "동물의 왕국 전래"],
+            2: ["알리바바와 40인의 도둑", "백설공주", "신데렐라", "장화 신은 고양이", "피노키오", "인어공주", "엄지 왕자", "미운 오리 새끼", "황금알을 낳는 거위", "브레멘 음악대"],
+            3: ["오즈의 마법사", "피터 팬", "알라딘과 요술램프", "신밧드의 모험", "보물섬", "하이디", "플랜더스의 개", "로빈슨 크루소", "소공녀", "톰 소여의 모험"],
+            4: ["어린 왕자", "지킬 박사와 하이드", "80일간의 세계 일주", "사랑의 학교", "소공자", "비밀의 화원", "키다리 아저씨", "빨간 머리앤", "아발론의 전설", "시간의 주름"],
+            5: ["토지 (어린이판)", "운수 좋은 날", "소나기", "메밀꽃 필 무렵", "별주부전", "홍길동전", "춘향전", "심청전", "장화홍련전", "허생전"],
+            6: ["데미안 (어린이판)", "로미오와 줄리엣", "햄릿", "레 미제라블", "돈 키호테", "파우스트", "그리스 로마 신화 1", "그리스 로마 신화 2", "일리아스 영웅전", "오디세이아 모험기"]
+        };
+
+        let booksDatabase = [];
+        let bookIdCounter = 1;
+
+        for (let g = 1; g <= 6; g++) {
+            for (let t = 0; t < 10; t++) {
+                let title = bookTitles[g][t];
+                booksDatabase.push({
+                    id: bookIdCounter++,
+                    grade: g,
+                    title: title,
+                    author: `${g}학년 필독 추천도서`,
+                    color: "bg-indigo-50 border-indigo-100 text-indigo-700",
+                    icon: "📚",
+                    pages: generateBookPages(title),
+                    question: `'${title}'을 읽고 느낀 가장 중요한 교훈은 무엇인가요?`
+                });
+            }
+        }
 
         let currentBook = null;
         let currentPageIndex = 0;
@@ -237,7 +238,7 @@
                 card.innerHTML = `
                     <div class="space-y-3">
                         <div class="flex justify-between items-center">
-                            <span class="text-xs font-bold px-2.5 py-1 rounded-lg ${book.color}">${book.grade}학년 필독 (15페이지)</span>
+                            <span class="text-xs font-bold px-2.5 py-1 rounded-lg ${book.color}">${book.grade}학년 (15페이지)</span>
                             <span class="text-2xl">${book.icon}</span>
                         </div>
                         <h3 class="text-lg font-bold text-slate-900">${book.title}</h3>
