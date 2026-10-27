@@ -1,1 +1,1236 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>북이통통 (Bookie Readers) - 초등 독서 웹 플랫폼</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Gaegu & Gowun Dodum for friendly Korean child design) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti for Celebration Effects -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bookieYellow: '#FFD93D',
+                        bookieGreen: '#6BCB77',
+                        bookieBlue: '#4D96FF',
+                        bookiePink: '#FF6B6B',
+                        bookiePurple: '#9D4EDD',
+                        bookieBg: '#FFF9EF',
+                    },
+                    fontFamily: {
+                        jua: ['Jua', 'sans-serif'],
+                        gaegu: ['Gaegu', 'cursive'],
+                        dodum: ['Gowun Dodum', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Gowun Dodum', sans-serif;
+            background-color: #FFF9EF;
+            background-image: radial-gradient(#E5E0D8 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .title-font {
+            font-family: 'Jua', sans-serif;
+        }
+        .hand-font {
+            font-family: 'Gaegu', cursive;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #FFD93D;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #FFC107;
+        }
+        /* Highlighted Word in Book */
+        .vocab-highlight {
+            background-color: #FFE600;
+            color: #1A1A1A;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            border-bottom: 2px dashed #FF9800;
+            transition: all 0.2s ease;
+            display: inline-block;
+        }
+        .vocab-highlight:hover {
+            background-color: #FF9800;
+            color: white;
+            transform: scale(1.05);
+        }
+        /* Animation classes */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0px); }
+        }
+        .floating-bookie {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-white/90 backdrop-blur-md sticky top-0 z-40 border-b-4 border-amber-300 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+            
+            <!-- Logo -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('library')">
+                <div class="w-12 h-12 bg-amber-400 rounded-2xl flex items-center justify-center shadow-md border-2 border-amber-500 transform -rotate-3 hover:rotate-0 transition-transform">
+                    <i class="fa-solid fa-book-open-reader text-2xl text-amber-900"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-black title-font text-amber-900 tracking-wide">북이통통 <span class="text-xs bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full font-sans">Bookie</span></h1>
+                    <p class="text-xs text-amber-700 hidden sm:block">AI와 함께하는 즐거운 아침 독서 교실</p>
+                </div>
+            </div>
+
+            <!-- Student Profile Summary Banner -->
+            <div class="flex items-center space-x-3 bg-amber-50 border-2 border-amber-200 rounded-2xl p-1.5 sm:px-4 sm:py-2">
+                <!-- Avatar Preview Thumbnail -->
+                <div class="relative w-10 h-10 bg-amber-200 rounded-full flex items-center justify-center overflow-hidden border-2 border-amber-400 cursor-pointer" onclick="switchTab('avatar')">
+                    <svg id="headerAvatarSvg" class="w-9 h-9 mt-1" viewBox="0 0 100 100"></svg>
+                </div>
+
+                <div class="text-left">
+                    <div class="flex items-center space-x-1.5">
+                        <span id="userGradeBadge" class="bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">3학년</span>
+                        <span id="userNameText" class="font-bold text-sm sm:text-base text-slate-800">김독서</span>
+                    </div>
+                    <div class="flex items-center space-x-3 text-xs mt-0.5">
+                        <span class="text-emerald-700 font-bold flex items-center"><i class="fa-solid fa-seedling text-emerald-500 mr-1"></i> <span id="userPointsText">150</span> 열매</span>
+                        <span class="text-indigo-700 font-bold flex items-center"><i class="fa-solid fa-book-bookmark text-indigo-500 mr-1"></i> <span id="userReadCountText">0</span> 권 완독</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Main Navigation Tabs -->
+        <nav class="bg-amber-100/70 border-t border-amber-200">
+            <div class="max-w-7xl mx-auto px-2 sm:px-6 flex justify-around sm:justify-start space-x-1 sm:space-x-4 overflow-x-auto py-1">
+                <button onclick="switchTab('library')" id="nav-library" class="nav-btn active flex items-center px-3 sm:px-5 py-2 rounded-xl text-sm font-bold transition-all">
+                    <i class="fa-solid fa-book text-amber-600 mr-2"></i> 학년별 도서관
+                </button>
+                <button onclick="switchTab('report')" id="nav-report" class="nav-btn flex items-center px-3 sm:px-5 py-2 rounded-xl text-sm font-bold text-slate-600 hover:bg-white/60 transition-all">
+                    <i class="fa-solid fa-pen-nib text-indigo-600 mr-2"></i> 독후감 놀이터
+                </button>
+                <button onclick="switchTab('avatar')" id="nav-avatar" class="nav-btn flex items-center px-3 sm:px-5 py-2 rounded-xl text-sm font-bold text-slate-600 hover:bg-white/60 transition-all">
+                    <i class="fa-solid fa-shirt text-pink-600 mr-2"></i> 부기 아바타 상점
+                </button>
+                <button onclick="switchTab('mypage')" id="nav-mypage" class="nav-btn flex items-center px-3 sm:px-5 py-2 rounded-xl text-sm font-bold text-slate-600 hover:bg-white/60 transition-all">
+                    <i class="fa-solid fa-award text-purple-600 mr-2"></i> 내 단어장 & 명예의 전당
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+
+        <!-- ================= TAB 1: LIBRARY (학년별 도서관) ================= -->
+        <section id="tab-library" class="tab-content">
+            
+            <!-- Grade Filter Selector Bar -->
+            <div class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border-2 border-amber-200 mb-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-bold title-font text-slate-800 flex items-center">
+                            <i class="fa-solid fa-graduation-cap text-amber-500 mr-2"></i> 학년별 추천 도서
+                        </h2>
+                        <p class="text-xs sm:text-sm text-slate-500 mt-0.5">내 학년에 맞는 책을 골라 읽어보세요!</p>
+                    </div>
+
+                    <!-- Grade Buttons Filter -->
+                    <div class="flex flex-wrap gap-2" id="gradeFilterContainer">
+                        <button onclick="filterGrade(1)" class="grade-filter-btn px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl font-bold text-sm bg-amber-400 text-slate-900 shadow-sm transition-all" data-grade="1">1학년</button>
+                        <button onclick="filterGrade(2)" class="grade-filter-btn px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl font-bold text-sm bg-slate-100 text-slate-600 hover:bg-amber-100 transition-all" data-grade="2">2학년</button>
+                        <button onclick="filterGrade(3)" class="grade-filter-btn px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl font-bold text-sm bg-slate-100 text-slate-600 hover:bg-amber-100 transition-all" data-grade="3">3학년</button>
+                        <button onclick="filterGrade(4)" class="grade-filter-btn px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl font-bold text-sm bg-slate-100 text-slate-600 hover:bg-amber-100 transition-all" data-grade="4">4학년</button>
+                        <button onclick="filterGrade(5)" class="grade-filter-btn px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl font-bold text-sm bg-slate-100 text-slate-600 hover:bg-amber-100 transition-all" data-grade="5">5학년</button>
+                        <button onclick="filterGrade(6)" class="grade-filter-btn px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl font-bold text-sm bg-slate-100 text-slate-600 hover:bg-amber-100 transition-all" data-grade="6">6학년</button>
+                        <button onclick="filterGrade('all')" class="grade-filter-btn px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl font-bold text-sm bg-slate-100 text-slate-600 hover:bg-amber-100 transition-all" data-grade="all">전체보기</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Book Grid List -->
+            <div id="bookGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Book Cards will be dynamically injected here -->
+            </div>
+        </section>
+
+        <!-- ================= TAB 2: READER (전자책 리더) ================= -->
+        <section id="tab-reader" class="tab-content hidden">
+            <div class="bg-white rounded-3xl shadow-xl border-4 border-amber-300 overflow-hidden flex flex-col min-h-[75vh]">
+                
+                <!-- Reader Top Bar -->
+                <div class="bg-amber-100 px-4 py-3 border-b-2 border-amber-200 flex flex-wrap items-center justify-between gap-2">
+                    <button onclick="switchTab('library')" class="bg-white hover:bg-amber-50 text-slate-700 font-bold px-3 py-1.5 rounded-xl border border-amber-300 text-sm flex items-center transition">
+                        <i class="fa-solid fa-arrow-left mr-2"></i> 서재로 돌아가기
+                    </button>
+                    
+                    <h3 id="readerBookTitle" class="text-lg sm:text-xl font-bold title-font text-amber-900 truncate">책 제목</h3>
+
+                    <!-- Reader Controls -->
+                    <div class="flex items-center space-x-2">
+                        <!-- Font Size Toggle -->
+                        <button onclick="changeFontSize(-1)" class="w-8 h-8 bg-white border border-amber-300 rounded-lg text-slate-700 font-bold text-xs hover:bg-amber-50" title="글자 작게">가-</button>
+                        <button onclick="changeFontSize(1)" class="w-8 h-8 bg-white border border-amber-300 rounded-lg text-slate-700 font-bold text-base hover:bg-amber-50" title="글자 크게">가+</button>
+                        
+                        <!-- Theme Toggle -->
+                        <button onclick="toggleReaderTheme()" class="w-8 h-8 bg-white border border-amber-300 rounded-lg text-slate-700 flex items-center justify-center hover:bg-amber-50" title="배경 색상 변경">
+                            <i class="fa-solid fa-palette text-amber-600"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Reader Main Canvas Body (Book Content + AI Bookie Companion Side Column) -->
+                <div id="readerBody" class="flex-grow flex flex-col lg:flex-row bg-amber-50/30">
+                    
+                    <!-- Left Column: E-Book Text Display Page -->
+                    <div class="lg:w-2/3 p-6 sm:p-10 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-amber-200">
+                        
+                        <!-- Page Content Box -->
+                        <div class="mb-6">
+                            <div class="flex justify-between items-center text-xs text-amber-700 font-bold mb-4 pb-2 border-b border-amber-200">
+                                <span id="readerGradeBadge" class="bg-amber-200 px-2 py-0.5 rounded-full">1학년 필독서</span>
+                                <span class="flex items-center"><i class="fa-solid fa-info-circle mr-1"></i> 노란색 단어를 누르면 뜻풀이가 떠요!</span>
+                            </div>
+
+                            <!-- Interactive Page Text -->
+                            <div id="readerTextContent" class="text-slate-800 leading-relaxed font-dodum text-lg sm:text-xl space-y-4">
+                                <!-- Ebook text goes here -->
+                            </div>
+                        </div>
+
+                        <!-- Page Pagination Bar -->
+                        <div class="pt-6 border-t border-amber-200 flex items-center justify-between">
+                            <button id="prevPageBtn" onclick="changePage(-1)" class="bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold px-4 py-2 rounded-xl text-sm transition flex items-center disabled:opacity-40 disabled:cursor-not-allowed">
+                                <i class="fa-solid fa-chevron-left mr-2"></i> 이전 페이지
+                            </button>
+
+                            <span id="pageIndicator" class="text-sm font-bold text-amber-900 title-font">1 / 3 페이지</span>
+
+                            <button id="nextPageBtn" onclick="changePage(1)" class="bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold px-4 py-2 rounded-xl text-sm transition flex items-center">
+                                다음 페이지 <i class="fa-solid fa-chevron-right ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: AI Bookie Interactive Companion -->
+                    <div class="lg:w-1/3 bg-white p-5 flex flex-col justify-between">
+                        <div>
+                            <!-- AI Bookie Header -->
+                            <div class="flex items-center space-x-3 p-3 bg-amber-100 rounded-2xl mb-4 border border-amber-300">
+                                <div class="w-12 h-12 bg-amber-300 rounded-full flex items-center justify-center border-2 border-amber-500 shadow-inner floating-bookie">
+                                    <i class="fa-solid fa-face-smile-beam text-2xl text-amber-800"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold title-font text-amber-900">AI 독서친구 '부기'</h4>
+                                    <p class="text-xs text-amber-700">생각을 자라게 해주는 대화 나누기</p>
+                                </div>
+                            </div>
+
+                            <!-- Chat Question Display -->
+                            <div id="aiChatBox" class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 text-sm text-slate-700 space-y-3 mb-4 min-h-[140px] flex flex-col justify-center">
+                                <p class="font-bold text-amber-900 text-xs">💡 부기의 생각 질문:</p>
+                                <p id="aiQuestionText" class="text-base font-bold text-slate-800">"책을 읽기 시작했구나! 이 이야기의 제목을 보고 어떤 생각이 드니?"</p>
+                            </div>
+
+                            <!-- User Chat Input -->
+                            <div class="space-y-2">
+                                <textarea id="aiUserAnswer" rows="3" placeholder="부기의 질문에 내 생각을 적어보세요..." class="w-full p-3 border-2 border-amber-200 rounded-xl text-sm focus:outline-none focus:border-amber-400 resize-none"></textarea>
+                                <button onclick="sendAnswerToBookie()" class="w-full bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold py-2 rounded-xl text-sm transition shadow-sm">
+                                    <i class="fa-solid fa-paper-plane mr-1"></i> 부기에게 의견 보내기
+                                </button>
+                            </div>
+
+                            <!-- AI Feedback Container -->
+                            <div id="aiFeedbackBox" class="hidden mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800">
+                                <span class="font-bold">💚 부기의 응원:</span> <span id="aiFeedbackText">멋진 생각이구나! 끝까지 재미있게 읽어보자!</span>
+                            </div>
+                        </div>
+
+                        <!-- Complete Book Button -->
+                        <div class="mt-6 pt-4 border-t border-slate-100">
+                            <button id="finishBookBtn" onclick="completeBookReading()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-2xl text-base shadow-lg transition flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-circle-check text-xl"></i>
+                                <span>이 책 다 읽었어요! (+50 열매)</span>
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= TAB 3: BOOK REPORT WRITER (독후감 놀이터) ================= -->
+        <section id="tab-report" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Left Column: Report Form -->
+                <div class="lg:col-span-2 bg-white p-6 sm:p-8 rounded-3xl border-3 border-indigo-200 shadow-sm">
+                    <h2 class="text-2xl font-bold title-font text-indigo-900 mb-2 flex items-center">
+                        <i class="fa-solid fa-pen-fancy text-indigo-500 mr-2"></i> 상상 쑥쑥 독후감 쓰기
+                    </h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mb-6">책을 읽고 느낀 점이나 인상 깊었던 장면을 내 마음대로 기록해보세요.</p>
+
+                    <form id="bookReportForm" onsubmit="saveBookReport(event)" class="space-y-5">
+                        
+                        <!-- Book Selection dropdown & Star rating -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-1">독후감을 쓸 책 선택</label>
+                                <select id="reportBookSelect" required class="w-full p-3 border-2 border-indigo-100 rounded-xl text-sm bg-white focus:outline-none focus:border-indigo-400">
+                                    <option value="">책을 선택해주세요</option>
+                                    <!-- Options filled dynamically -->
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-1">내 별점 평점</label>
+                                <div class="flex items-center space-x-2 py-2">
+                                    <div class="star-rating flex text-2xl text-amber-300 cursor-pointer">
+                                        <i class="fa-star fa-solid" onclick="setRating(1)"></i>
+                                        <i class="fa-star fa-solid" onclick="setRating(2)"></i>
+                                        <i class="fa-star fa-solid" onclick="setRating(3)"></i>
+                                        <i class="fa-star fa-solid" onclick="setRating(4)"></i>
+                                        <i class="fa-star fa-solid" onclick="setRating(5)"></i>
+                                    </div>
+                                    <span id="ratingScoreText" class="text-sm font-bold text-slate-600">5 / 5점</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Report Title -->
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1">독후감 제목</label>
+                            <input type="text" id="reportTitleInput" required placeholder="예: 토끼의 자만을 배우고 깨달은 점" class="w-full p-3 border-2 border-indigo-100 rounded-xl text-sm focus:outline-none focus:border-indigo-400">
+                        </div>
+
+                        <!-- Key Impression Scene -->
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1">가장 기억에 남는 장면이나 문장</label>
+                            <input type="text" id="reportBestSceneInput" required placeholder="예: 거북이가 끝까지 포기하지 않고 산꼭대기까지 올라가는 장면" class="w-full p-3 border-2 border-indigo-100 rounded-xl text-sm focus:outline-none focus:border-indigo-400">
+                        </div>
+
+                        <!-- What I Learned & Thoughts -->
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1">내가 깨달은 점 및 느낀 생각</label>
+                            <textarea id="reportContentInput" rows="5" required placeholder="책을 읽기 전과 읽은 후 내 생각은 어떻게 달라졌나요? 나라면 어떤 행동을 했을지 자유롭게 적어보세요." class="w-full p-3 border-2 border-indigo-100 rounded-xl text-sm focus:outline-none focus:border-indigo-400 resize-none"></textarea>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 rounded-2xl text-base shadow-md transition flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-floppy-disk text-lg"></i>
+                            <span>독후감 제출하기 (+30 열매 적립!)</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Right Column: My Saved Reports List -->
+                <div class="bg-indigo-50/60 p-6 rounded-3xl border-2 border-indigo-200">
+                    <h3 class="text-xl font-bold title-font text-indigo-900 mb-4 flex items-center">
+                        <i class="fa-solid fa-book-bookmark text-indigo-600 mr-2"></i> 내가 쓴 독후감 목록
+                    </h3>
+
+                    <div id="savedReportsList" class="space-y-4 max-h-[500px] overflow-y-auto custom-scrollbar pr-1">
+                        <!-- Saved Report Cards Dynamic -->
+                        <div class="text-center py-10 text-slate-400">
+                            <i class="fa-solid fa-file-pen text-4xl mb-2"></i>
+                            <p class="text-sm">아직 작성한 독후감이 없어요.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= TAB 4: AVATAR & SHOP (부기 아바타 상점) ================= -->
+        <section id="tab-avatar" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Left Box: Live Avatar Preview Canvas -->
+                <div class="bg-white p-6 rounded-3xl border-3 border-pink-200 shadow-sm flex flex-col items-center justify-center text-center">
+                    <h3 class="text-xl font-bold title-font text-pink-900 mb-2">나만의 부기 캐릭터</h3>
+                    <p class="text-xs text-slate-500 mb-4">완독 후 모은 열매로 멋진 소품을 꾸며보세요!</p>
+
+                    <!-- SVG Avatar Viewer Frame -->
+                    <div class="relative w-56 h-56 bg-gradient-to-b from-amber-100 to-amber-200 rounded-full border-4 border-pink-300 flex items-center justify-center shadow-inner overflow-hidden my-4">
+                        <svg id="mainAvatarSvg" class="w-48 h-48" viewBox="0 0 100 100"></svg>
+                    </div>
+
+                    <div class="bg-emerald-100 text-emerald-800 px-4 py-1.5 rounded-full font-bold text-sm mt-2 flex items-center">
+                        <i class="fa-solid fa-seedling mr-1.5"></i> 현재 독서 열매: <span id="shopUserPoints" class="ml-1 text-base">150</span>개
+                    </div>
+                </div>
+
+                <!-- Right Box: Item Shop Grid Tabs -->
+                <div class="lg:col-span-2 bg-white p-6 rounded-3xl border-2 border-pink-200 shadow-sm">
+                    
+                    <!-- Item Category Tabs -->
+                    <div class="flex space-x-2 mb-6 border-b border-pink-100 pb-3">
+                        <button onclick="switchShopCategory('hat')" id="shop-tab-hat" class="shop-cat-btn px-4 py-2 rounded-xl text-sm font-bold bg-pink-500 text-white">모자/헤어</button>
+                        <button onclick="switchShopCategory('outfit')" id="shop-tab-outfit" class="shop-cat-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600">의상</button>
+                        <button onclick="switchShopCategory('accessory')" id="shop-tab-accessory" class="shop-cat-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600">액세서리</button>
+                    </div>
+
+                    <!-- Shop Item List Grid -->
+                    <div id="shopItemsGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        <!-- Items rendered dynamically -->
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= TAB 5: MY PAGE & HALL OF FAME (내 단어장 & 명예의 전당) ================= -->
+        <section id="tab-mypage" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <!-- Left: Saved Vocabulary Notebook -->
+                <div class="bg-white p-6 rounded-3xl border-2 border-purple-200 shadow-sm">
+                    <h3 class="text-xl font-bold title-font text-purple-900 mb-2 flex items-center">
+                        <i class="fa-solid fa-book-bookmark text-purple-600 mr-2"></i> 나만의 독서 단어장
+                    </h3>
+                    <p class="text-xs text-slate-500 mb-4">책을 읽으며 클릭해서 찾아본 어려운 낱말 모음입니다.</p>
+
+                    <div id="savedVocabList" class="space-y-3 max-h-[420px] overflow-y-auto custom-scrollbar pr-1">
+                        <!-- Vocabulary Cards Dynamically Loaded -->
+                    </div>
+                </div>
+
+                <!-- Right: Class Leaderboard Simulation -->
+                <div class="bg-white p-6 rounded-3xl border-2 border-amber-200 shadow-sm">
+                    <h3 class="text-xl font-bold title-font text-amber-900 mb-2 flex items-center">
+                        <i class="fa-solid fa-trophy text-amber-500 mr-2"></i> 우리 반 독서 왕 (명예의 전당)
+                    </h3>
+                    <p class="text-xs text-slate-500 mb-4">이번 달 책을 가장 많이 읽은 친구들 순위입니다.</p>
+
+                    <div class="space-y-3" id="leaderboardContainer">
+                        <!-- Leaderboard item rows generated dynamically -->
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Vocabulary Definition Popup Modal -->
+    <div id="vocabModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border-4 border-amber-300 transform scale-100 transition-transform">
+            <div class="flex justify-between items-start mb-4">
+                <span class="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-full">어휘 사전</span>
+                <button onclick="closeVocabModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+            </div>
+
+            <div class="text-center mb-4">
+                <h3 id="modalWord" class="text-2xl font-black title-font text-amber-900 mb-1">낱말 이름</h3>
+                <button onclick="speakWordTTS()" class="text-xs bg-amber-200 hover:bg-amber-300 text-amber-900 px-3 py-1 rounded-full font-bold flex items-center mx-auto transition">
+                    <i class="fa-solid fa-volume-high mr-1"></i> 소리 들어보기
+                </button>
+            </div>
+
+            <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200 text-sm space-y-2 text-slate-700 mb-5">
+                <p><strong class="text-amber-900"> 뜻:</strong> <span id="modalMeaning">단어 설명</span></p>
+                <p><strong class="text-amber-900"> 예문:</strong> <span id="modalExample" class="italic text-slate-600">단어 예문</span></p>
+            </div>
+
+            <button onclick="saveVocabToNotebook()" class="w-full bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold py-2.5 rounded-xl text-sm transition shadow-sm">
+                <i class="fa-solid fa-bookmark mr-1"></i> 내 단어장에 저장하기
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-amber-100/60 border-t border-amber-200 py-4 mt-8 text-center text-xs text-amber-800">
+        <p>북이통통 (Bookie Readers) - 초등학교 어린이를 위한 AI 맞춤 독서 플랫폼</p>
+    </footer>
+
+    <!-- JS Application Logic -->
+    <script>
+        /* ================= STATE & DATA MANAGEMENT ================= */
+        
+        // User Profile State stored in localStorage
+        let userData = {
+            name: "김독서",
+            grade: 3,
+            points: 150,
+            completedBooks: [],
+            savedVocab: [],
+            savedReports: [],
+            equippedAvatar: {
+                hat: 'none',
+                outfit: 'default',
+                accessory: 'none'
+            }
+        };
+
+        // Book Repository (Grade 1 to 6)
+        const booksData = [
+            // 1st Grade
+            {
+                id: "b1_1",
+                grade: 1,
+                title: "아기 돼지 삼형제",
+                author: "영국 전래동화",
+                coverBg: "from-pink-400 to-red-400",
+                icon: "fa-piggy-bank",
+                pages: [
+                    "옛날 어느 마을에 아기 돼지 삼형제가 살고 있었어요. 첫째 돼지는 짚으로 집을 짓고, 둘째 돼지는 <span class='vocab-highlight' onclick='openVocabModal(\"나뭇가지\", \"나무에서 갈라져 나온 작은 가지\", \"첫째 돼지는 나뭇가지로 집을 지었어요.\")'>나뭇가지</span>로 집을 지었어요.",
+                    "하지만 늑대가 나타나 훅 바람을 불자 첫째와 둘째의 집은 금방 날아가 버렸답니다. 돼지들은 막내 돼지의 집으로 달아났어요.",
+                    "셋째 돼지는 아주 <span class='vocab-highlight' onclick='openVocabModal(\"튼튼하다\", \"모양이 야무지고 단단하다\", \"벽돌집은 바람이 불어도 튼튼해요.\")'>튼튼한</span> 벽돌 집을 지었기 때문에 늑대가 아무리 바람을 불어도 집은 꿈쩍도 하지 않았답니다!"
+                ],
+                aiQuestion: "셋째 돼지처럼 부지런하게 미리 준비하는 마음이 왜 중요할까요?"
+            },
+            {
+                id: "b1_2",
+                grade: 1,
+                title: "은혜 갚은 까치",
+                author: "한국 전래동화",
+                coverBg: "from-blue-400 to-indigo-400",
+                icon: "fa-feather",
+                pages: [
+                    "옛날 한 선비가 길을 가다가 구렁이에게 먹힐 위험에 처한 아기 까치를 구해주었어요.",
+                    "그날 밤 선비는 절에서 잠을 자다가 큰 구렁이를 만났어요. 구렁이는 <span class='vocab-highlight' onclick='openVocabModal(\"은혜\", \"고맙게 여겨지는 도움이나 베풂\", \"까치는 은혜를 잊지 않았어요.\")'>은혜</span>를 원수로 갚으려 했지요.",
+                    "그때 어디선가 나타난 까치가 종을 세 번 울려 선비의 목숨을 구해주었답니다."
+                ],
+                aiQuestion: "나에게 도움을 준 고마운 친구나 가족에게 어떻게 고마움을 표현할 수 있을까요?"
+            },
+            // 2nd Grade
+            {
+                id: "b2_1",
+                grade: 2,
+                title: "토끼와 거북이",
+                author: "이솝 우화",
+                coverBg: "from-emerald-400 to-teal-500",
+                icon: "fa-turtle",
+                pages: [
+                    "달리기 실력을 자랑하던 토끼가 느릿느릿 걸어가는 거북이를 <span class='vocab-highlight' onclick='openVocabModal(\"놀리다\", \"장난으로 흉내 내거나 비웃다\", \"남의 단점을 보고 놀리면 안 돼요.\")'>놀렸어요</span>. 화가 난 거북이는 토끼에게 달리기 경주를 제안했지요.",
+                    "경주가 시작되자 토끼는 순식간에 앞서나갔고, 거북이가 한참 뒤처지자 나무 그늘에서 여유롭게 낮잠을 잤습니다.",
+                    "하지만 거북이는 쉼 없이 꾸준히 걸어가 결국 잠든 토끼를 지나쳐 결승선에 먼저 도착했답니다."
+                ],
+                aiQuestion: "재능이 뛰어난 것보다 포기하지 않고 꾸준히 노력하는 것이 왜 더 중요할까요?"
+            },
+            {
+                id: "b2_2",
+                grade: 2,
+                title: "혹부리 영감",
+                author: "한국 전래동화",
+                coverBg: "from-amber-400 to-orange-500",
+                icon: "fa-masks-theater",
+                pages: [
+                    "얼굴에 커다란 혹이 달린 착한 혹부리 영감이 산속 빈집에서 도깨비들을 만났어요.",
+                    "영감은 노래를 잘 불렀고, 도깨비들은 노래가 혹에서 나오는 줄 알고 보물을 주고 혹을 사갔습니다.",
+                    "이 소식을 들은 마음씨 나쁜 혹부리 영감도 산에 갔지만, 도깨비에게 도리어 혹을 하나 더 붙이고 돌아왔답니다."
+                ],
+                aiQuestion: "욕심을 부리지 않고 정직하게 사는 것의 중요성을 느껴보았나요?"
+            },
+            // 3rd Grade
+            {
+                id: "b3_1",
+                grade: 3,
+                title: "흥부와 놀부",
+                author: "한국 전래동화",
+                coverBg: "from-yellow-400 to-amber-600",
+                icon: "fa-crow",
+                pages: [
+                    "마음씨 착한 흥부는 다리가 부러진 제비를 정성껏 치료해 주었습니다. 이듬해 제비는 흥부에게 박씨를 가져다주었어요.",
+                    "흥부가 박을 켜자 박 안에서 금은보화와 <span class='vocab-highlight' onclick='openVocabModal(\"보물\", \"아주 귀하고 가치 있는 물건\", \"박 속에서 수많은 보물이 나왔어요.\")'>보물</span>이 쏟아져 나와 부자가 되었습니다.",
+                    "이 소식을 들은 탐욕스러운 놀부는 일부러 제비 다리를 부러뜨렸다가, 박 속에서 도깨비와 오물이 나와 망신을 당했습니다."
+                ],
+                aiQuestion: "어려운 동물이나 이웃을 진심으로 도와준 경험이 있나요?"
+            },
+            {
+                id: "b3_2",
+                grade: 3,
+                title: "금도끼 은도끼",
+                author: "이솝 우화",
+                coverBg: "from-cyan-400 to-blue-500",
+                icon: "fa-hatchet",
+                pages: [
+                    "정직한 나무꾼이 연못에 쇠도끼를 빠뜨리고 슬프게 울고 있자 산신령이 나타났습니다.",
+                    "산신령이 금도끼와 은도끼를 보여주며 '이것이 네 도끼냐?' 물었지만, 나무꾼은 자기 도끼가 아니라고 <span class='vocab-highlight' onclick='openVocabModal(\"정직하다\", \"마음에 거짓이나 꾸밈이 없다\", \"정직한 사람에게는 좋은 일이 생겨요.\")'>정직하게</span> 대답했어요.",
+                    "산신령은 정직함에 감동하여 금도끼, 은도끼, 쇠도끼를 모두 선물로 주었답니다."
+                ],
+                aiQuestion: "눈앞의 이익보다 정직한 태도를 지키는 일의 가치에 대해 이야기해 봅시다."
+            },
+            // 4th Grade
+            {
+                id: "b4_1",
+                grade: 4,
+                title: "신데렐라",
+                author: "샤를 페로",
+                coverBg: "from-purple-400 to-pink-500",
+                icon: "fa-shoe-prints",
+                pages: [
+                    "신데렐라는 새어머니와 언니들에게 구박받았지만 늘 희망을 잃지 않는 친절한 소녀였습니다.",
+                    "요정 대모의 도움으로 멋진 드레스와 <span class='vocab-highlight' onclick='openVocabModal(\"유리구두\", \"투명하고 아름다운 유리로 만든 신발\", \"신데렐라는 계단에 유리구두를 남겼어요.\")'>유리구두</span>를 타고 왕궁 무도회에 참석할 수 있게 되었지요.",
+                    "12시 종이 울려 급히 돌아오다 남긴 유리구두 덕분에 왕자님과 다시 만나 행복하게 살았답니다."
+                ],
+                aiQuestion: "어려운 상황 속에서도 긍정적인 마음을 잃지 않으려면 어떻게 해야 할까요?"
+            },
+            {
+                id: "b4_2",
+                grade: 4,
+                title: "미운 오리 새끼",
+                author: "안데르센",
+                coverBg: "from-sky-400 to-indigo-500",
+                icon: "fa-duck",
+                pages: [
+                    "다른 오리들과 생김새가 달라 늘 놀림을 받던 미운 오리 새끼는 슬프게 농장을 떠났습니다.",
+                    "추운 겨울 동안 수많은 역경을 견뎌내며 외로움을 참고 견뎠습니다.",
+                    "봄이 오고 호숫가에 비친 자신의 모습을 본 오리는 자신이 못생긴 오리가 아니라 아름다운 백조였음을 깨달았습니다."
+                ],
+                aiQuestion: "남들과 조금 다르다고 해서 스스로를 미워한 적이 있나요? 자신의 특별함을 찾아보세요."
+            },
+            // 5th Grade
+            {
+                id: "b5_1",
+                grade: 5,
+                title: "어린 왕자",
+                author: "생텍쥐페리",
+                coverBg: "from-violet-500 to-purple-800",
+                icon: "fa-star",
+                pages: [
+                    "소행성 B612에서 온 어린 왕자는 자신의 별에 있는 장미와 다툰 후 여러 행성을 여행했습니다.",
+                    "지구에서 만난 여우는 어린 왕자에게 '길들인다'는 것의 의미와 <span class='vocab-highlight' onclick='openVocabModal(\"마음\", \"사람의 생각이나 감정의 근본\", \"가장 중요한 것은 마음으로 봐야 보여.\")'>마음</span>으로 봐야 진실을 볼 수 있음을 가르쳐 주었습니다.",
+                    "어린 왕자는 자신의 장미가 세상에 단 하나뿐인 소중한 존재임을 깨닫고 자신의 별로 돌아가기로 합니다."
+                ],
+                aiQuestion: "나에게 '길들여진' 세상에서 가장 소중한 친구나 관계는 누구인가요?"
+            },
+            {
+                id: "b5_2",
+                grade: 5,
+                title: "백설공주",
+                author: "그림 형제",
+                coverBg: "from-rose-400 to-red-600",
+                icon: "fa-apple-whole",
+                pages: [
+                    "아름다운 백설공주는 질투심 많은 왕비를 피해 깊은 숲속 일곱 난쟁이의 집에 머물게 되었습니다.",
+                    "왕비는 독사과를 들고 찾아와 공주를 위험에 빠뜨렸지만, 난쟁이들과 왕자의 진심 어린 보살핌으로 깨어났습니다."
+                ],
+                aiQuestion: "남을 질투하는 마음이 나 자신과 주변 사람에게 어떤 영향을 주는지 생각해 보세요."
+            },
+            // 6th Grade
+            {
+                id: "b6_1",
+                grade: 6,
+                title: "별주부전",
+                author: "한국 고전소설",
+                coverBg: "from-teal-500 to-emerald-700",
+                icon: "fa-water",
+                pages: [
+                    "용왕의 병을 고치기 위해 토끼의 간을 구하러 육지로 올라간 자라(별주부)는 토끼를 꾀어 용궁으로 데려왔습니다.",
+                    "위기를 감지한 지혜로운 토끼는 '간을 육지에 두고 왔다'는 재치 있는 <span class='vocab-highlight' onclick='openVocabModal(\"임기응변\", \"닥쳐온 일을 지혜롭게 처리함\", \"토끼는 임기응변으로 위기를 벗어났어요.\")'>임기응변</span>으로 목숨을 건졌습니다."
+                ],
+                aiQuestion: "갑작스러운 위기 상황에서 지혜와 재치를 발휘해 본 적이 있나요?"
+            },
+            {
+                id: "b6_2",
+                grade: 6,
+                title: "걸리버 여행기",
+                author: "조너선 스위프트",
+                coverBg: "from-blue-600 to-indigo-800",
+                icon: "fa-ship",
+                pages: [
+                    "걸리버는 폭풍우를 만나 소인국(릴리프트)에 불시착했습니다. 그곳 사람들은 손가락만 한 크기였습니다.",
+                    "서로 다른 크기와 문화 속에서 오해도 있었지만, 걸리버는 그들의 전쟁을 막아주고 지혜를 나누며 서로를 이해하게 되었습니다."
+                ],
+                aiQuestion: "나와 가치관이나 환경이 완전히 다른 사람과 친구가 되는 좋은 방법은 무엇일까요?"
+            }
+        ];
+
+        // Shop Items Data
+        const shopItems = [
+            { id: "hat_cap", cat: "hat", name: "노랑 꼬깔모자", cost: 30, icon: "fa-hat-wizard" },
+            { id: "hat_crown", cat: "hat", name: "황금 왕관", cost: 100, icon: "fa-crown" },
+            { id: "outfit_hero", cat: "outfit", name: "영웅 망토", cost: 60, icon: "fa-user-ninja" },
+            { id: "outfit_hanbok", cat: "outfit", name: "알록달록 한복", cost: 80, icon: "fa-shirt" },
+            { id: "acc_glasses", cat: "accessory", name: "지적인 안경", cost: 40, icon: "fa-glasses" },
+            { id: "acc_wand", cat: "accessory", name: "요정 별지팡이", cost: 70, icon: "fa-wand-magic-sparkles" }
+        ];
+
+        /* ================= CURRENT STATE CONTROLLERS ================= */
+        let currentActiveBook = null;
+        let currentReaderPage = 0;
+        let readerFontSize = 18; // px
+        let selectedRating = 5;
+        let selectedVocabForModal = null;
+        let currentFilterGrade = 1;
+
+        /* ================= APP INITIALIZATION ================= */
+        window.onload = function() {
+            loadUserData();
+            renderHeaderProfile();
+            renderBookGrid(1); // Default filter 1st grade
+            populateReportSelect();
+            renderSavedReports();
+            renderSavedVocab();
+            renderAvatar();
+            renderShopItems('hat');
+            renderLeaderboard();
+        };
+
+        // LocalStorage Loader
+        function loadUserData() {
+            const saved = localStorage.getItem('bookie_user_data');
+            if (saved) {
+                try {
+                    userData = JSON.parse(saved);
+                } catch(e) {
+                    console.error("Failed to load user data", e);
+                }
+            }
+        }
+
+        function saveUserData() {
+            localStorage.setItem('bookie_user_data', JSON.stringify(userData));
+            renderHeaderProfile();
+        }
+
+        function renderHeaderProfile() {
+            document.getElementById('userNameText').innerText = userData.name;
+            document.getElementById('userGradeBadge').innerText = userData.grade + "학년";
+            document.getElementById('userPointsText').innerText = userData.points;
+            document.getElementById('userReadCountText').innerText = userData.completedBooks.length;
+            document.getElementById('shopUserPoints').innerText = userData.points;
+            renderHeaderAvatarSvg();
+        }
+
+        /* ================= TAB NAVIGATION ================= */
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-amber-400', 'text-slate-900', 'shadow-sm');
+                btn.classList.add('text-slate-600');
+            });
+
+            const activeNav = document.getElementById('nav-' + tabId);
+            if (activeNav) {
+                activeNav.classList.add('bg-amber-400', 'text-slate-900', 'shadow-sm');
+                activeNav.classList.remove('text-slate-600');
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /* ================= LIBRARY & GRADE FILTER ================= */
+        function filterGrade(grade) {
+            currentFilterGrade = grade;
+            document.querySelectorAll('.grade-filter-btn').forEach(btn => {
+                const btnGrade = btn.getAttribute('data-grade');
+                if (btnGrade == grade) {
+                    btn.className = "grade-filter-btn px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl font-bold text-sm bg-amber-400 text-slate-900 shadow-sm transition-all";
+                } else {
+                    btn.className = "grade-filter-btn px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl font-bold text-sm bg-slate-100 text-slate-600 hover:bg-amber-100 transition-all";
+                }
+            });
+            renderBookGrid(grade);
+        }
+
+        function renderBookGrid(grade) {
+            const grid = document.getElementById('bookGrid');
+            grid.innerHTML = '';
+
+            const filtered = (grade === 'all') 
+                ? booksData 
+                : booksData.filter(b => b.grade == grade);
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400">해당 학년의 추천 도서가 준비 중입니다.</div>`;
+                return;
+            }
+
+            filtered.forEach(book => {
+                const isCompleted = userData.completedBooks.includes(book.id);
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-3xl p-5 border-2 border-amber-200 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group";
+
+                card.innerHTML = `
+                    <div>
+                        <!-- Book Cover Graphic -->
+                        <div class="h-44 rounded-2xl bg-gradient-to-br ${book.coverBg} p-4 flex flex-col justify-between text-white relative overflow-hidden shadow-inner mb-4">
+                            <span class="bg-black/30 backdrop-blur-md text-white text-xs font-bold px-2.5 py-1 rounded-full w-max">
+                                ${book.grade}학년
+                            </span>
+                            ${isCompleted ? '<span class="absolute top-3 right-3 bg-emerald-500 text-white text-xs px-2 py-1 rounded-lg font-bold shadow"><i class="fa-solid fa-check"></i> 완독함</span>' : ''}
+                            <div class="text-center my-auto">
+                                <i class="fa-solid ${book.icon} text-5xl opacity-90 group-hover:scale-110 transition-transform"></i>
+                            </div>
+                            <p class="text-xs text-white/80 font-medium">${book.author}</p>
+                        </div>
+
+                        <h3 class="text-xl font-bold title-font text-slate-800 mb-1">${book.title}</h3>
+                        <p class="text-xs text-slate-500 mb-4 line-clamp-2">${book.pages[0].replace(/<[^>]*>/g, '')}</p>
+                    </div>
+
+                    <button onclick="openBookReader('${book.id}')" class="w-full bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold py-2.5 rounded-xl text-sm transition flex items-center justify-center">
+                        <i class="fa-solid fa-book-open mr-2"></i> ${isCompleted ? '다시 읽기' : '책 읽기 시작'}
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        /* ================= ELECTRONIC BOOK READER ================= */
+        function openBookReader(bookId) {
+            const book = booksData.find(b => b.id === bookId);
+            if (!book) return;
+
+            currentActiveBook = book;
+            currentReaderPage = 0;
+
+            document.getElementById('readerBookTitle').innerText = book.title;
+            document.getElementById('readerGradeBadge').innerText = book.grade + "학년 추천도서";
+            document.getElementById('aiQuestionText').innerText = `"${book.aiQuestion}"`;
+            document.getElementById('aiUserAnswer').value = '';
+            document.getElementById('aiFeedbackBox').classList.add('hidden');
+
+            renderReaderPage();
+            switchTab('reader');
+        }
+
+        function renderReaderPage() {
+            if (!currentActiveBook) return;
+
+            const textContainer = document.getElementById('readerTextContent');
+            textContainer.style.fontSize = readerFontSize + 'px';
+            textContainer.innerHTML = currentActiveBook.pages[currentReaderPage];
+
+            const total = currentActiveBook.pages.length;
+            document.getElementById('pageIndicator').innerText = `${currentReaderPage + 1} / ${total} 페이지`;
+
+            document.getElementById('prevPageBtn').disabled = (currentReaderPage === 0);
+            
+            // Toggle finish button enablement on last page
+            const finishBtn = document.getElementById('finishBookBtn');
+            if (currentReaderPage === total - 1) {
+                finishBtn.classList.remove('opacity-50', 'pointer-events-none');
+            } else {
+                finishBtn.classList.add('opacity-50', 'pointer-events-none');
+            }
+        }
+
+        function changePage(delta) {
+            if (!currentActiveBook) return;
+            const newPage = currentReaderPage + delta;
+            if (newPage >= 0 && newPage < currentActiveBook.pages.length) {
+                currentReaderPage = newPage;
+                renderReaderPage();
+            }
+        }
+
+        function changeFontSize(delta) {
+            readerFontSize = Math.max(14, Math.min(28, readerFontSize + delta * 2));
+            renderReaderPage();
+        }
+
+        function toggleReaderTheme() {
+            const body = document.getElementById('readerBody');
+            if (body.classList.contains('bg-amber-50/30')) {
+                body.classList.remove('bg-amber-50/30');
+                body.classList.add('bg-slate-900', 'text-white');
+            } else {
+                body.classList.remove('bg-slate-900', 'text-white');
+                body.classList.add('bg-amber-50/30');
+            }
+        }
+
+        /* ================= AI BOOKIE COMPANION ================= */
+        function sendAnswerToBookie() {
+            const answer = document.getElementById('aiUserAnswer').value.trim();
+            if (!answer) {
+                alert("부기에게 전할 생각을 적어주세요!");
+                return;
+            }
+
+            const feedbackBox = document.getElementById('aiFeedbackBox');
+            const feedbackText = document.getElementById('aiFeedbackText');
+            
+            const praises = [
+                "우와! 정말 깊이 있고 멋진 생각이구나!",
+                "네 생각을 들으니 부기도 새로운 마음이 들어!",
+                "정말 훌륭해! 독서 열매가 쑥쑥 자라는 소리가 들려!"
+            ];
+            const randomPraise = praises[Math.floor(Math.random() * praises.length)];
+
+            feedbackText.innerText = randomPraise;
+            feedbackBox.classList.remove('hidden');
+
+            // Grant 5 points for answering AI
+            userData.points += 5;
+            saveUserData();
+        }
+
+        function completeBookReading() {
+            if (!currentActiveBook) return;
+
+            if (!userData.completedBooks.includes(currentActiveBook.id)) {
+                userData.completedBooks.push(currentActiveBook.id);
+                userData.points += 50; // Reward points
+                saveUserData();
+
+                // Trigger Confetti Celebration
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+
+                alert(`🎉 축하합니다! '${currentActiveBook.title}' 완독 성공! 독서 열매 +50개를 획득하셨습니다!`);
+            } else {
+                alert("이미 완독한 도서입니다. 멋져요!");
+            }
+
+            switchTab('library');
+            renderBookGrid(currentFilterGrade);
+        }
+
+        /* ================= VOCABULARY MODAL & TTS ================= */
+        function openVocabModal(word, meaning, example) {
+            selectedVocabForModal = { word, meaning, example };
+            document.getElementById('modalWord').innerText = word;
+            document.getElementById('modalMeaning').innerText = meaning;
+            document.getElementById('modalExample').innerText = `"${example}"`;
+            document.getElementById('vocabModal').classList.remove('hidden');
+        }
+
+        function closeVocabModal() {
+            document.getElementById('vocabModal').classList.add('hidden');
+        }
+
+        function speakWordTTS() {
+            if (!selectedVocabForModal) return;
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(selectedVocabForModal.word);
+                utterance.lang = 'ko-KR';
+                utterance.rate = 0.9;
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert("이 브라우저는 음성 듣기를 지원하지 않습니다.");
+            }
+        }
+
+        function saveVocabToNotebook() {
+            if (!selectedVocabForModal) return;
+
+            const exists = userData.savedVocab.some(v => v.word === selectedVocabForModal.word);
+            if (!exists) {
+                userData.savedVocab.push(selectedVocabForModal);
+                saveUserData();
+                renderSavedVocab();
+                alert(`'${selectedVocabForModal.word}' 낱말이 단어장에 저장되었습니다!`);
+            } else {
+                alert("이미 단어장에 저장된 낱말입니다.");
+            }
+            closeVocabModal();
+        }
+
+        function renderSavedVocab() {
+            const list = document.getElementById('savedVocabList');
+            list.innerHTML = '';
+
+            if (userData.savedVocab.length === 0) {
+                list.innerHTML = `<div class="text-center py-10 text-slate-400">책을 읽으며 모르는 단어를 클릭해 저장해보세요!</div>`;
+                return;
+            }
+
+            userData.savedVocab.forEach((item, idx) => {
+                const card = document.createElement('div');
+                card.className = "p-3 bg-purple-50 border border-purple-200 rounded-2xl flex justify-between items-start";
+                card.innerHTML = `
+                    <div>
+                        <span class="font-bold text-purple-900 text-sm">${item.word}</span>
+                        <p class="text-xs text-slate-700 mt-1">${item.meaning}</p>
+                        <p class="text-[11px] text-slate-500 italic mt-0.5">"${item.example}"</p>
+                    </div>
+                    <button onclick="deleteVocab(${idx})" class="text-slate-400 hover:text-red-500 text-xs p-1">&times;</button>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function deleteVocab(index) {
+            userData.savedVocab.splice(index, 1);
+            saveUserData();
+            renderSavedVocab();
+        }
+
+        /* ================= BOOK REPORT WRITER ================= */
+        function populateReportSelect() {
+            const select = document.getElementById('reportBookSelect');
+            select.innerHTML = '<option value="">책을 선택해주세요</option>';
+
+            booksData.forEach(b => {
+                const opt = document.createElement('option');
+                opt.value = b.title;
+                opt.innerText = `[${b.grade}학년] ${b.title}`;
+                select.appendChild(opt);
+            });
+        }
+
+        function setRating(score) {
+            selectedRating = score;
+            document.getElementById('ratingScoreText').innerText = `${score} / 5점`;
+
+            const stars = document.querySelectorAll('.star-rating i');
+            stars.forEach((star, idx) => {
+                if (idx < score) {
+                    star.className = "fa-star fa-solid";
+                } else {
+                    star.className = "fa-star fa-regular";
+                }
+            });
+        }
+
+        function saveBookReport(event) {
+            event.preventDefault();
+
+            const bookTitle = document.getElementById('reportBookSelect').value;
+            const title = document.getElementById('reportTitleInput').value.trim();
+            const bestScene = document.getElementById('reportBestSceneInput').value.trim();
+            const content = document.getElementById('reportContentInput').value.trim();
+
+            if (!bookTitle || !title || !content) {
+                alert("모든 독후감 항목을 입력해 주세요!");
+                return;
+            }
+
+            const newReport = {
+                id: Date.now(),
+                bookTitle,
+                title,
+                bestScene,
+                content,
+                rating: selectedRating,
+                date: new Date().toLocaleDateString('ko-KR')
+            };
+
+            userData.savedReports.unshift(newReport);
+            userData.points += 30; // Grant points for report
+            saveUserData();
+
+            renderSavedReports();
+            document.getElementById('bookReportForm').reset();
+            setRating(5);
+
+            confetti({ particleCount: 50, spread: 60 });
+            alert("🎉 독후감이 저장되었습니다! 독서 열매 +30개 적립!");
+        }
+
+        function renderSavedReports() {
+            const list = document.getElementById('savedReportsList');
+            list.innerHTML = '';
+
+            if (userData.savedReports.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-10 text-slate-400">
+                        <i class="fa-solid fa-file-pen text-4xl mb-2"></i>
+                        <p class="text-sm">아직 작성한 독후감이 없어요.</p>
+                    </div>`;
+                return;
+            }
+
+            userData.savedReports.forEach(rep => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-2xl border border-indigo-100 shadow-sm space-y-2";
+                
+                let starsHtml = '';
+                for (let i = 0; i < 5; i++) {
+                    starsHtml += i < rep.rating ? '<i class="fa-solid fa-star text-amber-400 text-xs"></i>' : '<i class="fa-regular fa-star text-amber-300 text-xs"></i>';
+                }
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <span class="text-xs font-bold bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">${rep.bookTitle}</span>
+                        <span class="text-[10px] text-slate-400">${rep.date}</span>
+                    </div>
+                    <h4 class="font-bold text-slate-800 text-base">${rep.title}</h4>
+                    <div class="flex items-center space-x-1">${starsHtml}</div>
+                    <p class="text-xs text-slate-600 font-bold bg-amber-50 p-2 rounded-xl">💡 명장면: ${rep.bestScene}</p>
+                    <p class="text-xs text-slate-700 leading-relaxed">${rep.content}</p>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        /* ================= AVATAR & SHOP SYSTEM ================= */
+        function renderAvatarSvgContent() {
+            const eq = userData.equippedAvatar;
+            
+            // Base Yellow Bookie Character
+            let html = `
+                <!-- Base Body -->
+                <ellipse cx="50" cy="55" rx="35" ry="32" fill="#FFD93D" stroke="#E6B800" stroke-width="2"/>
+                <!-- Eyes -->
+                <circle cx="38" cy="48" r="4" fill="#1A1A1A"/>
+                <circle cx="62" cy="48" r="4" fill="#1A1A1A"/>
+                <circle cx="39" cy="46" r="1.5" fill="#FFFFFF"/>
+                <circle cx="63" cy="46" r="1.5" fill="#FFFFFF"/>
+                <!-- Cheeks -->
+                <ellipse cx="30" cy="55" rx="5" ry="3" fill="#FF8E8E" opacity="0.6"/>
+                <ellipse cx="70" cy="55" rx="5" ry="3" fill="#FF8E8E" opacity="0.6"/>
+                <!-- Smile -->
+                <path d="M 42 58 Q 50 66 58 58" fill="none" stroke="#1A1A1A" stroke-width="2.5" stroke-linecap="round"/>
+            `;
+
+            // Accessories Layer
+            if (eq.accessory === 'acc_glasses') {
+                html += `
+                    <circle cx="38" cy="48" r="9" fill="none" stroke="#333" stroke-width="2"/>
+                    <circle cx="62" cy="48" r="9" fill="none" stroke="#333" stroke-width="2"/>
+                    <line x1="47" y1="48" x2="53" y2="48" stroke="#333" stroke-width="2"/>
+                `;
+            } else if (eq.accessory === 'acc_wand') {
+                html += `
+                    <path d="M 75 50 L 90 35" stroke="#8B5CF6" stroke-width="3"/>
+                    <polygon points="90,30 92,34 96,35 93,38 94,42 90,39 86,42 87,38 84,35 88,34" fill="#FBBF24"/>
+                `;
+            }
+
+            // Outfit Layer
+            if (eq.outfit === 'outfit_hero') {
+                html += `<path d="M 18 55 Q 50 90 82 55 L 75 80 Q 50 95 25 80 Z" fill="#EF4444"/>`;
+            } else if (eq.outfit === 'outfit_hanbok') {
+                html += `<path d="M 20 65 Q 50 80 80 65 L 75 86 Q 50 90 25 86 Z" fill="#3B82F6"/>`;
+            }
+
+            // Hat Layer
+            if (eq.hat === 'hat_cap') {
+                html += `<polygon points="50,10 30,32 70,32" fill="#F59E0B"/><circle cx="50" cy="10" r="4" fill="#EF4444"/>`;
+            } else if (eq.hat === 'hat_crown') {
+                html += `<polygon points="30,30 35,15 42,25 50,10 58,25 65,15 70,30" fill="#FBBF24" stroke="#D97706" stroke-width="1.5"/>`;
+            }
+
+            return html;
+        }
+
+        function renderAvatar() {
+            document.getElementById('mainAvatarSvg').innerHTML = renderAvatarSvgContent();
+        }
+
+        function renderHeaderAvatarSvg() {
+            const svg = document.getElementById('headerAvatarSvg');
+            if (svg) svg.innerHTML = renderAvatarSvgContent();
+        }
+
+        function switchShopCategory(cat) {
+            document.querySelectorAll('.shop-cat-btn').forEach(btn => {
+                btn.className = "shop-cat-btn px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600";
+            });
+            document.getElementById('shop-tab-' + cat).className = "shop-cat-btn px-4 py-2 rounded-xl text-sm font-bold bg-pink-500 text-white";
+            renderShopItems(cat);
+        }
+
+        function renderShopItems(cat) {
+            const grid = document.getElementById('shopItemsGrid');
+            grid.innerHTML = '';
+
+            const items = shopItems.filter(i => i.cat === cat);
+            items.forEach(item => {
+                const isEquipped = userData.equippedAvatar[item.cat] === item.id;
+                const card = document.createElement('div');
+                card.className = "p-4 bg-pink-50/50 border border-pink-200 rounded-2xl flex flex-col items-center text-center justify-between";
+
+                card.innerHTML = `
+                    <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-2xl text-pink-500 shadow-sm mb-2">
+                        <i class="fa-solid ${item.icon}"></i>
+                    </div>
+                    <span class="font-bold text-xs text-slate-800 mb-1">${item.name}</span>
+                    <span class="text-[11px] text-emerald-700 font-bold mb-3"><i class="fa-solid fa-seedling"></i> ${item.cost} 열매</span>
+                    
+                    <button onclick="equipOrBuyItem('${item.cat}', '${item.id}', ${item.cost})" class="w-full py-1.5 rounded-xl font-bold text-xs transition ${isEquipped ? 'bg-emerald-500 text-white' : 'bg-pink-500 hover:bg-pink-600 text-white'}">
+                        ${isEquipped ? '착용 중' : '착용하기'}
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function equipOrBuyItem(cat, itemId, cost) {
+            if (userData.equippedAvatar[cat] === itemId) {
+                userData.equippedAvatar[cat] = 'none'; // Unequip
+            } else {
+                if (userData.points >= cost) {
+                    userData.equippedAvatar[cat] = itemId;
+                } else {
+                    alert("독서 열매가 부족합니다! 책을 다 읽고 열매를 더 모아보세요.");
+                    return;
+                }
+            }
+            saveUserData();
+            renderAvatar();
+            renderShopItems(cat);
+        }
+
+        /* ================= HALL OF FAME LEADERBOARD ================= */
+        function renderLeaderboard() {
+            const container = document.getElementById('leaderboardContainer');
+            container.innerHTML = '';
+
+            const mockRankings = [
+                { name: "김독서 (나)", grade: userData.grade, count: userData.completedBooks.length, points: userData.points, isMe: true },
+                { name: "이슬기", grade: 3, count: 5, points: 280, isMe: false },
+                { name: "박지성", grade: 3, count: 4, points: 220, isMe: false },
+                { name: "최지우", grade: 3, count: 3, points: 190, isMe: false },
+                { name: "정민우", grade: 3, count: 2, points: 110, isMe: false }
+            ];
+
+            // Sort by points descending
+            mockRankings.sort((a, b) => b.points - a.points);
+
+            mockRankings.forEach((student, idx) => {
+                const rank = idx + 1;
+                let badgeColor = "bg-slate-200 text-slate-700";
+                if (rank === 1) badgeColor = "bg-amber-400 text-slate-900 font-black";
+                if (rank === 2) badgeColor = "bg-slate-300 text-slate-800 font-black";
+                if (rank === 3) badgeColor = "bg-amber-700 text-white font-black";
+
+                const row = document.createElement('div');
+                row.className = `p-3 rounded-2xl flex items-center justify-between border ${student.isMe ? 'bg-amber-100 border-amber-300 font-bold' : 'bg-slate-50 border-slate-200'}`;
+
+                row.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <span class="w-7 h-7 ${badgeColor} rounded-full flex items-center justify-center text-xs">${rank}</span>
+                        <span class="text-sm text-slate-800">${student.name}</span>
+                    </div>
+                    <div class="text-xs space-x-3">
+                        <span class="text-slate-500">${student.count}권 완독</span>
+                        <span class="text-emerald-700 font-bold"><i class="fa-solid fa-seedling"></i> ${student.points} 열매</span>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+    </script>
+</body>
+</html>
